@@ -1540,6 +1540,16 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   SB.auth.onAuthStateChange((evt) => { if (evt === "SIGNED_OUT" && store) location.reload(); });
 })();
 </script>
-<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
+<script>
+// Keep Lamp current: check for a new version on every open, and reload once when one takes over.
+if ("serviceWorker" in navigator) addEventListener("load", () => {
+  const hadController = !!navigator.serviceWorker.controller; let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadController && !reloaded) { reloaded = true; location.reload(); } });
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => {
+    reg.update().catch(() => {});
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) reg.update().catch(() => {}); });
+  }).catch(() => {});
+});
+</script>
 </body>
 </html>

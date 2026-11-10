@@ -1,4 +1,4 @@
-window.LAMP_VERSION = "1.1.0";
+window.LAMP_VERSION = "1.2.0";
 /*
  * Lamp's local-first store.
  * Every record is a JSON document addressed by (collection, id), kept in this
@@ -127,6 +127,17 @@ window.LAMP_VERSION = "1.1.0";
       stop() { if (channel) client.removeChannel(channel); channel = null; },
       status() { return { state: status, pending: Object.keys(outbox).length, lastSynced }; },
       hasLocalData() { return Object.keys(docs).length > 0; },
+      // everything currently on this device, for backups
+      dump() { return Object.values(docs).filter(r => !r.deleted && r.col !== "session").map(r => ({ col: r.col, id: r.id, data: r.data, updated_at: r.updated_at })); },
+      // write many records at once (restore from a backup)
+      setMany(rows) {
+        const cols = new Set(); const now = new Date().toISOString();
+        rows.forEach(r => { if (!r || !r.col || r.id == null || typeof r.data !== "object") return;
+          const row = { col: String(r.col), id: String(r.id), data: r.data, deleted: false, updated_at: now };
+          docs[key(row.col, row.id)] = row; outbox[key(row.col, row.id)] = row; cols.add(row.col); });
+        persist(); emit(cols); setStatus(navigator.onLine ? "saving" : "offline"); flushSoon();
+        return cols.size;
+      },
     };
     return api;
   }

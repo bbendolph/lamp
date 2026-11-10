@@ -228,6 +228,10 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
 .set-row .auto{grid-column:1/-1;font-size:12px;color:var(--muted);margin-top:-4px}
 .aisle{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 6px 6px 12px;font:600 13px/1 var(--body);background:var(--bg)}
 .aisle button{appearance:none;border:0;background:var(--raised);color:var(--muted);width:22px;height:22px;border-radius:99px;cursor:pointer;font:700 13px/1 var(--body)}
+.prog{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--muted)}
+.prog b{color:var(--fg);font-weight:600}
+.spark{flex:none;color:var(--accent)}
+.ex.done .spark{color:var(--good)}
 </style>
 </head>
 <body>
@@ -373,6 +377,22 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
       <div class="card">
         <div class="staples" id="set-aisles"></div>
         <form class="add-row" id="set-aisle-form" autocomplete="off"><input class="inp" id="sa-name" placeholder="New aisle" maxlength="40" style="padding:10px 14px;font-size:15px"><button class="btn sm" type="submit">Add</button></form>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="h-set-backup">
+      <h2 id="h-set-backup">Backup</h2>
+      <div class="card">
+        <span class="meta">Your data already syncs online and lives on each device. A backup is a copy you keep yourself.</span>
+        <div class="row-actions">
+          <button class="btn" type="button" id="bk-all">Download backup</button>
+          <button class="btn ghost" type="button" id="bk-csv">Workout log for Excel</button>
+        </div>
+        <div class="row-actions" style="border-top:1px solid var(--line);padding-top:12px">
+          <label class="btn ghost sm" for="bk-file" style="cursor:pointer">Restore from a backup</label>
+          <input type="file" id="bk-file" accept=".json,application/json" hidden>
+          <span class="meta" id="bk-msg"></span>
+        </div>
       </div>
     </section>
 
@@ -623,6 +643,32 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   }
 
   // ---------- WORKOUT ----------
+  // ---------- strength progress ----------
+  // Each finished workout stores the weight used per machine. These helpers read that history.
+  function liftHistory(exId, beforeDate){
+    const out = [];
+    (S.workouts||[]).forEach(w => (w.sets||[]).forEach(st => {
+      if (st.id === exId && st.done !== false && st.weight != null && (!beforeDate || w.date < beforeDate)) out.push({date:w.date, weight:+st.weight});
+    }));
+    return out.sort((a,b) => a.date.localeCompare(b.date));
+  }
+  const bestOf = h => h.length ? Math.max(...h.map(x => x.weight)) : null;
+  const monthDay = d => parseISO(d).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+  function spark(h){
+    if (h.length < 2) return "";
+    const pts = h.slice(-10), W = 64, H = 18, lo = Math.min(...pts.map(p => p.weight)), hi = Math.max(...pts.map(p => p.weight)), span = hi - lo || 1;
+    const xy = pts.map((p,i) => [ (i/(pts.length-1))*(W-4)+2, H-2-((p.weight-lo)/span)*(H-4) ]);
+    const last = xy[xy.length-1];
+    return `<svg class="spark" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true"><polyline points="${xy.map(q => q.map(n => n.toFixed(1)).join(",")).join(" ")}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2.2" fill="currentColor"/></svg>`;
+  }
+  function progressLine(exId){
+    const h = liftHistory(exId, TODAY); if (!h.length) return "";
+    const best = bestOf(h), first = h[0], delta = +(h[h.length-1].weight - first.weight).toFixed(1);
+    const change = h.length < 2 ? "first time logged " + monthDay(first.date) : delta > 0 ? `+${delta} lb since ${monthDay(first.date)}` : delta < 0 ? `${delta} lb since ${monthDay(first.date)}` : `steady since ${monthDay(first.date)}`;
+    return `<div class="prog">${spark(h)}<span>Best <b>${best}</b> · ${esc(change)}</span></div>`;
+  }
+  const isNewBest = (exId, w) => { const b = bestOf(liftHistory(exId, TODAY)); return b != null && w != null && w !== "" && +w > b; };
+
   function renderWorkout(){
     if (!S.routines) return;
     if (!S.activeRoutine || !activeRoutine()) S.activeRoutine = (todaysRoutine()||{}).id || null;
@@ -645,15 +691,16 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
       const focused = document.activeElement && document.activeElement.id;
       list.innerHTML = ex.map(x => {
         const done = !!(ses && ses.done && ses.done[x.id]);
-        const last = S.weights[x.id];
+        const hist = S.weights[x.id] == null ? liftHistory(x.id) : null;
+        const last = S.weights[x.id] ?? (hist && hist.length ? hist[hist.length-1].weight : undefined);
         const cur = ses && ses.weights && ses.weights[x.id] != null ? ses.weights[x.id] : (last ?? "");
         return `<div class="ex ${done ? "done" : ""}" data-id="${esc(x.id)}">
           <button type="button" class="check" aria-pressed="${done}" aria-label="Mark ${esc(x.name)} done">${CHECK}</button>
-          <div style="min-width:0"><div class="name">${esc(x.name)}</div><div class="meta"><b>${esc(x.target)}</b>${x.works ? " · " + esc(x.works) : ""}</div></div>
+          <div style="min-width:0"><div class="name">${esc(x.name)} <span class="pill good nb" ${isNewBest(x.id, cur) ? "" : "hidden"}>New best</span></div><div class="meta"><b>${esc(x.target)}</b>${x.works ? " · " + esc(x.works) : ""}</div>${progressLine(x.id)}</div>
           <label class="wt"><input id="w-${esc(x.id)}" type="number" inputmode="decimal" step="2.5" min="0" placeholder="lb" value="${cur}" aria-label="Weight for ${esc(x.name)} in pounds"><span>${last != null ? "last " + last : "lb"}</span></label>
         </div>`; }).join("");
       if (focused && $(focused)) { const f = $(focused); f.focus(); const v = f.value; f.value = ""; f.value = v; }
-      if (logged && !ses) $("wo-notice").innerHTML = `<div class="notice good"><span><b>${esc(r.name)} is logged for today.</b> Tap machines again only if you're doing a second round.</span></div>`;
+      if (logged && !ses && !$("wo-notice").innerHTML.trim()) $("wo-notice").innerHTML = `<div class="notice good"><span><b>${esc(r.name)} is logged for today.</b> Tap machines again only if you're doing a second round.</span></div>`;
     }
     const fb = $("finish-bar");
     if (r && ex.length && ses && d > 0 && d < ex.length && !S.finishing) {
@@ -683,6 +730,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     const inp = e.target.closest("input"); if (!inp || !db) return;
     const r = activeRoutine(); if (!r) return;
     const id = inp.closest(".ex").dataset.id; const v = inp.value;
+    const nb = inp.closest(".ex").querySelector(".nb"); if (nb) nb.hidden = !isNewBest(id, v);
     clearTimeout(wTimer);
     wTimer = setTimeout(() => { const s = sessionFor(r);
       if (v === "") delete s.weights[id]; else if (isFinite(+v)) s.weights[id] = +v; else return;
@@ -701,23 +749,29 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     const ex = r.exercises || [];
     const sets = ex.map(x => ({id:x.id, name:x.name, done: !ex.length || !!(ses.done && ses.done[x.id]), weight: ses.weights && ses.weights[x.id] != null ? ses.weights[x.id] : (S.weights[x.id] ?? null)}));
     const doneCount = sets.filter(x => x.done).length;
+    const prs = sets.filter(x => x.done && x.weight != null && isNewBest(x.id, x.weight)).map(x => ({id:x.id, name:x.name, weight:x.weight}));
     try {
-      await db.collection("workouts").add({date:TODAY, routineId:r.id, name:r.name, minutes:r.minutes || null, sets, done:doneCount, total:ex.length, loggedAt:new Date().toISOString()});
+      await db.collection("workouts").add({date:TODAY, routineId:r.id, name:r.name, minutes:r.minutes || null, sets, done:doneCount, total:ex.length, prs:prs.map(x => x.id), loggedAt:new Date().toISOString()});
       const nw = {...S.weights}; sets.forEach(x => { if (x.done && x.weight != null) nw[x.id] = x.weight; });
       S.weights = nw; save("meta/weights", nw);
       setHabit("Workout", true);
       S.session = null; await db.doc("session/current").delete();
-      $("wo-notice").innerHTML = `<div class="notice good"><span><b>${esc(r.name)} logged${ex.length && doneCount < ex.length ? ` (${doneCount} of ${ex.length} machines)` : ""}.</b> Workout habit checked. Your weights are saved for next time.</span></div>`;
+      $("wo-notice").innerHTML = `<div class="notice good"><span><b>${esc(r.name)} logged${ex.length && doneCount < ex.length ? ` (${doneCount} of ${ex.length} machines)` : ""}.</b> ${prs.length ? `New best on ${prs.map(x => `${esc(x.name)} (${x.weight} lb)`).join(", ")}. ` : ""}Workout habit checked. Your weights are saved for next time.</span></div>`;
     } catch (e) { dbError(e); }
     finally { S.finishing = false; renderAll(); }
   }
 
   function renderHistory(){
     const el = $("history"); if (!S.workouts) return;
-    el.innerHTML = S.workouts.length ? `<div class="history">${S.workouts.slice(0,6).map(w => {
+    if (!S.workouts.length) { el.innerHTML = `<div class="empty">Finished workouts show up here. Tap one to see your weights.</div>`; return; }
+    el.innerHTML = `<div class="list" style="gap:8px">${S.workouts.slice(0,8).map(w => {
       const part = w.total && w.done != null && w.done < w.total ? ` · ${w.done} of ${w.total}` : "";
-      return `<div><b>${esc(w.name)}</b><span>${esc(fmtShort(w.date))}${part}</span></div>`; }).join("")}</div>`
-      : `<div class="empty">Finished workouts show up here.</div>`;
+      const prs = new Set(w.prs || []);
+      const rows = (w.sets||[]).filter(st => st.done !== false).map(st => {
+        const prev = liftHistory(st.id, w.date); const pw = prev.length ? prev[prev.length-1].weight : null;
+        const diff = st.weight != null && pw != null ? +(st.weight - pw).toFixed(1) : null;
+        return `<div class="kvrow"><span>${esc(st.name)}${prs.has(st.id) ? ' <span class="pill good">Best</span>' : ""}</span><span>${st.weight != null ? `${st.weight} lb${diff ? ` (${diff > 0 ? "+" : ""}${diff})` : ""}` : "no weight"}</span></div>`; }).join("");
+      return `<details class="entry"><summary><b>${esc(w.name)}${(w.prs||[]).length ? ` · ${(w.prs||[]).length} new best${(w.prs||[]).length > 1 ? "s" : ""}` : ""}</b><span>${esc(fmtShort(w.date))}${part}</span></summary>${rows ? `<div class="body" style="gap:0">${rows}</div>` : ""}</details>`; }).join("")}</div>`;
   }
 
   // ---------- TASKS ----------
@@ -1216,6 +1270,47 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     closeQA();
   });
 
+
+  // ---------- BACKUP ----------
+  async function offerFile(name, text, type){
+    const blob = new Blob([text], {type});
+    const touch = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (touch && navigator.canShare) {
+      const file = new File([blob], name, {type});
+      if (navigator.canShare({files:[file]})) { try { await navigator.share({files:[file], title:name}); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+    }
+    const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+  $("bk-all").onclick = () => {
+    if (!store) return;
+    const docs = store.dump();
+    const body = {app:"lamp", format:1, exportedAt:new Date().toISOString(), account:USER_EMAIL, count:docs.length, docs};
+    offerFile(`Lamp backup ${TODAY}.json`, JSON.stringify(body, null, 1), "application/json");
+    $("bk-msg").textContent = `${docs.length} records in this backup.`;
+  };
+  $("bk-csv").onclick = () => {
+    const q = v => { const t = String(v ?? ""); return /[",\n]/.test(t) ? `"${t.replace(/"/g,'""')}"` : t; };
+    const lines = [["Date","Routine","Machine","Weight (lb)","Done","New best"].join(",")];
+    [...(S.workouts||[])].sort((a,b) => a.date.localeCompare(b.date)).forEach(w => {
+      const prs = new Set(w.prs||[]);
+      (w.sets && w.sets.length ? w.sets : [{name:"", weight:null, done:true}]).forEach(st =>
+        lines.push([w.date, w.name, st.name, st.weight ?? "", st.done === false ? "no" : "yes", prs.has(st.id) ? "yes" : ""].map(q).join(",")));
+    });
+    offerFile(`Lamp workouts ${TODAY}.csv`, lines.join("\n"), "text/csv");
+  };
+  S.restore = null;
+  $("bk-file").addEventListener("change", async e => {
+    const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
+    try {
+      const data = JSON.parse(await f.text());
+      if (!data || data.app !== "lamp" || !Array.isArray(data.docs)) throw new Error("not a Lamp backup");
+      S.restore = data;
+      $("bk-msg").innerHTML = `Backup from ${esc(new Date(data.exportedAt).toLocaleDateString())} with ${data.docs.length} records. Restoring replaces matching records. <button type="button" class="btn sm danger" id="bk-go">Restore it</button>`;
+      $("bk-go").onclick = () => { const n = store.setMany(S.restore.docs); S.restore = null; $("bk-msg").textContent = `Restored records in ${n} section${n===1?"":"s"}. Syncing to your other devices.`; toast("Backup restored"); };
+    } catch { $("bk-msg").textContent = "That file isn't a Lamp backup."; }
+  });
   // ---------- ACCOUNT ----------
   function fmtWhen(isoStr){ if (!isoStr) return "Not yet"; const d = new Date(isoStr); return d.toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}); }
   function renderAccount(){

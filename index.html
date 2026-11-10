@@ -281,7 +281,19 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   .mini{grid-template-columns:1fr}
   .mini a[style]{grid-column:auto!important}
 }
-@media (min-width:1300px){ .habits{grid-template-columns:repeat(3,minmax(0,1fr))} }
+/* big monitors (Windows desktops, external displays): use the width */
+@media (min-width:1300px){
+  .wrap{max-width:none;padding-left:48px;padding-right:48px}
+  .habits{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .cols{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:40px}
+  #ex-list,#task-groups .list,#pr-list,#bk-now,#mv-list,#study-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px;align-items:start}
+  .verse p{font-size:22px}
+}
+@media (min-width:1700px){
+  .wrap{max-width:1800px}
+  body{padding-left:248px} nav.tabs{width:248px}
+  .cols{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+}
 </style>
 </head>
 <body>

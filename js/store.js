@@ -1,4 +1,4 @@
-window.LAMP_VERSION = "1.0.0";
+window.LAMP_VERSION = "1.1.0";
 /*
  * Lamp's local-first store.
  * Every record is a JSON document addressed by (collection, id), kept in this

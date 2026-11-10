@@ -39,7 +39,7 @@ html,body{background:var(--bg);color:var(--fg);margin:0}
 html{-webkit-text-size-adjust:100%}
 body{padding-top:env(safe-area-inset-top,0px);min-height:100vh;font-family:var(--body);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
-.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(104px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(150px + env(safe-area-inset-bottom,0px))}
 header.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:14px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.02em}
 .brand small{display:block;font-family:var(--body);font-weight:500;font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
@@ -217,6 +217,17 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
 .kvrow{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:15px}
 .kvrow:first-child{border-top:0}
 .kvrow span:last-child{color:var(--muted);text-align:right;overflow-wrap:anywhere}
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:9;width:56px;height:56px;border-radius:18px;border:0;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 18px rgb(0 0 0 / .22)}
+.fab svg{width:24px;height:24px}
+.qa-back{position:fixed;inset:0;z-index:30;background:rgb(8 12 20 / .45)}
+.qa{position:fixed;left:0;right:0;bottom:0;z-index:31;background:var(--surface);border-top:1px solid var(--line);border-radius:20px 20px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px;max-width:640px;margin:0 auto;box-shadow:0 -10px 30px rgb(0 0 0 / .18)}
+.set-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;border-top:1px solid var(--line);padding-top:10px}
+.set-row:first-child{border-top:0;padding-top:0}
+.set-row .inp{padding:10px 12px;font-size:15px}
+.set-row .tools{display:flex;gap:2px}
+.set-row .auto{grid-column:1/-1;font-size:12px;color:var(--muted);margin-top:-4px}
+.aisle{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 6px 6px 12px;font:600 13px/1 var(--body);background:var(--bg)}
+.aisle button{appearance:none;border:0;background:var(--raised);color:var(--muted);width:22px;height:22px;border-radius:99px;cursor:pointer;font:700 13px/1 var(--body)}
 </style>
 </head>
 <body>
@@ -237,7 +248,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     <div class="brand">Lamp<small id="dateline">Today</small></div>
     <div class="hdr-right">
       <span class="sync" id="sync" data-s="idle"><i></i><span id="sync-text">Starting</span></span>
-      <a class="icon-btn" href="#account" aria-label="Account and sync"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></a>
+      <a class="icon-btn" href="#account" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></a>
     </div>
   </header>
 
@@ -337,13 +348,41 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     <div id="plan-editor"></div>
   </main>
 
-  <!-- ACCOUNT -->
+  <!-- SETTINGS -->
   <main id="view-account" hidden>
-    <div class="row-head"><h1>Account</h1><a class="textlink" href="#today">Done</a></div>
-    <div class="card" id="acct-info"></div>
-    <div class="row-actions"><button class="btn" type="button" id="acct-sync">Sync now</button><button class="btn ghost" type="button" id="acct-out">Sign out</button></div>
-    <div class="card"><b>Install on this device</b>
-      <span class="meta">iPhone and iPad: in Safari tap Share, then Add to Home Screen.<br>Mac: in Safari choose File, then Add to Dock. In Chrome, use the install icon in the address bar.</span></div>
+    <div class="row-head"><h1>Settings</h1><a class="textlink" href="#today">Done</a></div>
+
+    <section class="section" aria-labelledby="h-set-habits">
+      <div class="row-head"><h2 id="h-set-habits">Daily habits</h2><span class="eyebrow" id="set-habit-dirty"></span></div>
+      <div class="card" id="set-habits"></div>
+    </section>
+
+    <section class="section" aria-labelledby="h-set-verses">
+      <div class="row-head"><h2 id="h-set-verses">Verse of the day</h2><span class="eyebrow" id="set-verse-count"></span></div>
+      <p class="meta" style="margin:0">Today's screen shows one of these each day, in order.</p>
+      <form class="card" id="set-verse-form" autocomplete="off">
+        <div class="field"><label for="sv-ref">Reference</label><input class="inp" id="sv-ref" placeholder="Romans 8:28" maxlength="80"></div>
+        <div class="field"><label for="sv-text">Verse</label><textarea class="inp" id="sv-text" maxlength="600" style="min-height:64px"></textarea></div>
+        <div><button class="btn" type="submit">Add verse</button></div>
+      </form>
+      <div class="list" id="set-verses"></div>
+    </section>
+
+    <section class="section" aria-labelledby="h-set-aisles">
+      <h2 id="h-set-aisles">Grocery aisles</h2>
+      <div class="card">
+        <div class="staples" id="set-aisles"></div>
+        <form class="add-row" id="set-aisle-form" autocomplete="off"><input class="inp" id="sa-name" placeholder="New aisle" maxlength="40" style="padding:10px 14px;font-size:15px"><button class="btn sm" type="submit">Add</button></form>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="h-set-acct">
+      <h2 id="h-set-acct">Account and sync</h2>
+      <div class="card" id="acct-info"></div>
+      <div class="row-actions"><button class="btn" type="button" id="acct-sync">Sync now</button><button class="btn ghost" type="button" id="acct-out">Sign out</button></div>
+      <div class="card"><b>Install on this device</b>
+        <span class="meta">iPhone and iPad: in Safari tap Share, then Add to Home Screen.<br>Mac: in Safari choose File, then Add to Dock. In Chrome, use the install icon in the address bar.</span></div>
+    </section>
   </main>
 
   <!-- BIBLE -->
@@ -448,6 +487,18 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   <a href="#prayer" id="tab-prayer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c-1.5-2.5-6-5.5-6-10a3.5 3.5 0 0 1 6-2.4A3.5 3.5 0 0 1 18 11c0 4.5-4.5 7.5-6 10z"/></svg>Prayer</a>
   <a href="#reading" id="tab-reading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5C4 4.5 7.5 4 12 6c4.5-2 8-1.5 10-.5V19c-2-1-5.5-1.5-10 .5-4.5-2-8-1.5-10-.5z"/><path d="M12 6v13.5"/></svg>Reading</a>
 </div></nav>
+<button type="button" class="fab" id="fab" aria-label="Quick add" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+<div class="qa-back" id="qa-back" hidden></div>
+<form class="qa" id="qa" hidden autocomplete="off" aria-label="Quick add">
+  <div class="seg" role="group" aria-label="What to add" id="qa-type">
+    <button type="button" data-t="task" aria-pressed="true">Task</button>
+    <button type="button" data-t="grocery" aria-pressed="false">Grocery</button>
+    <button type="button" data-t="prayer" aria-pressed="false">Prayer</button>
+  </div>
+  <input class="inp" id="qa-text" placeholder="What needs doing?" maxlength="300" aria-label="Text">
+  <div class="chips" id="qa-opts"></div>
+  <div class="row-actions"><button class="btn" type="submit">Add</button><button class="btn ghost" type="button" id="qa-close">Close</button><span class="meta" id="qa-hint"></span></div>
+</form>
 <div id="toast" class="toast" hidden role="status"></div>
 
 <script src="vendor/supabase.js"></script>
@@ -455,8 +506,12 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
 <script src="js/store.js"></script>
 <script>
 (() => {
-  const HABITS = ["Devotion","Prayer","Read","Workout","2L Water","Skin care","Journal"];
-  const VERSES = [
+  const DEFAULT_HABITS = ["Devotion","Prayer","Read","Workout","2L Water","Skin care","Journal"];
+  let HABITS = [...DEFAULT_HABITS];          // habit ids (keys in each day's record)
+  let HABIT_NAME = {};                         // id -> display name
+  const AUTO_HABITS = {Devotion:"when you save a study", Prayer:"when you tap I prayed", Read:"when you update your page", Workout:"when you finish a workout"};
+  const hName = id => HABIT_NAME[id] || id;
+  const DEFAULT_VERSES = [
     ["Thy word is a lamp unto my feet, and a light unto my path.","Psalm 119:105"],
     ["Trust in the LORD with all thine heart; and lean not unto thine own understanding.","Proverbs 3:5"],
     ["I can do all things through Christ which strengtheneth me.","Philippians 4:13"],
@@ -472,6 +527,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     ["Study to shew thyself approved unto God, a workman that needeth not to be ashamed, rightly dividing the word of truth.","2 Timothy 2:15"],
     ["The steps of a good man are ordered by the LORD: and he delighteth in his way.","Psalm 37:23"]
   ];
+  let VERSES = DEFAULT_VERSES;
   const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   const TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
@@ -525,7 +581,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     const d = habitDoc(TODAY); const done = HABITS.filter(h => d[h]).length; const pct = habitPct(d);
     $("habit-count").textContent = `${done} of ${HABITS.length}`; $("habit-pct").textContent = pct + "%";
     $("habit-fill").style.width = pct + "%"; $("habit-fill").classList.toggle("full", pct === 100);
-    $("habits").innerHTML = HABITS.map(h => `<button type="button" class="tap" data-h="${esc(h)}" aria-pressed="${!!d[h]}"><span class="box">${CHECK}</span>${esc(h)}</button>`).join("");
+    $("habits").innerHTML = HABITS.map(h => `<button type="button" class="tap" data-h="${esc(h)}" aria-pressed="${!!d[h]}"><span class="box">${CHECK}</span>${esc(hName(h))}</button>`).join("");
     const now = new Date(); let w = "";
     for (let i = 6; i >= 0; i--) { const day = addDays(now, -i); const p = habitPct(habitDoc(iso(day)));
       w += `<div class="${i===0?"is-today":""}" title="${p}%"><i><b class="${p===100?"full":""}" style="width:${p}%"></b></i>${DAYS[day.getDay()].slice(0,2)}</div>`; }
@@ -931,8 +987,10 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   }
 
   // ---------- GROCERIES ----------
-  const SECTIONS = ["Produce","Meat & Seafood","Dairy & Eggs","Bakery","Pantry","Frozen","Snacks & Drinks","Household","Personal care","Other"];
-  $("gr-sec").innerHTML = SECTIONS.map(x => `<option>${esc(x)}</option>`).join("");
+  const DEFAULT_AISLES = ["Produce","Meat & Seafood","Dairy & Eggs","Bakery","Pantry","Frozen","Snacks & Drinks","Household","Personal care","Other"];
+  let SECTIONS = [...DEFAULT_AISLES];
+  function fillAisles(){ const cur = $("gr-sec").value; $("gr-sec").innerHTML = SECTIONS.map(x => `<option>${esc(x)}</option>`).join(""); if (SECTIONS.includes(cur)) $("gr-sec").value = cur; }
+  fillAisles();
   function setPane(p){ const g = p === "groc"; $("pane-tasks").hidden = g; $("pane-groc").hidden = !g; $("seg-tasks").setAttribute("aria-pressed", !g); $("seg-groc").setAttribute("aria-pressed", g); try { localStorage.setItem("lamp:pane", p); } catch {} }
   $("seg-tasks").onclick = () => setPane("tasks"); $("seg-groc").onclick = () => setPane("groc");
   try { if (localStorage.getItem("lamp:pane") === "groc") setPane("groc"); } catch {}
@@ -940,7 +998,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     if (!S.groceries) return;
     const need = S.groceries.filter(g => g.need);
     $("groc-count").textContent = need.length ? `(${need.length})` : "";
-    const bySec = SECTIONS.map(sec => [sec, need.filter(g => (g.section || "Other") === sec).sort((a,b) => a.name.localeCompare(b.name))]).filter(x => x[1].length);
+    const bySec = SECTIONS.map(sec => [sec, need.filter(g => (SECTIONS.includes(g.section) ? g.section : "Other") === sec).sort((a,b) => a.name.localeCompare(b.name))]).filter(x => x[1].length);
     $("gr-need").innerHTML = need.length ? bySec.map(([sec, items]) => `<section class="section" style="gap:8px"><span class="eyebrow">${esc(sec)}</span><div class="list" style="gap:8px">${items.map(g => `
       <div class="gitem" data-id="${esc(g.id)}"><button type="button" class="tick" data-act="got" aria-label="Got ${esc(g.name)}" style="appearance:none;background:none;border:0;padding:6px;margin:-6px;cursor:pointer"><span class="box">${CHECK}</span></button>
       <div style="min-width:0"><div class="t">${esc(g.name)}</div>${g.qty ? `<div class="q">${esc(g.qty)}</div>` : ""}</div>
@@ -1038,6 +1096,126 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     renderPlan();
   });
 
+  // ---------- SETTINGS ----------
+  const UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
+  const DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  const settingsDoc = () => { const d = {...(store && store.get("meta","settings") || {})}; delete d.id; return d; };
+  function saveSettings(patch){ store.set("meta","settings", {...settingsDoc(), ...patch}); }
+  function applySettings(){
+    const st = settingsDoc();
+    if (Array.isArray(st.habits) && st.habits.length) { HABITS = st.habits.map(h => h.id); HABIT_NAME = Object.fromEntries(st.habits.map(h => [h.id, h.name])); }
+    else { HABITS = [...DEFAULT_HABITS]; HABIT_NAME = {}; }
+    VERSES = Array.isArray(st.verses) && st.verses.length ? st.verses.map(v => [v.text, v.ref]) : DEFAULT_VERSES;
+    SECTIONS = Array.isArray(st.aisles) && st.aisles.length ? [...st.aisles.filter(a => a !== "Other"), "Other"] : [...DEFAULT_AISLES];
+    setClock(); fillAisles(); renderHabits(); renderGroceries(); renderSettings();
+  }
+  const curHabits = () => HABITS.map(id => ({id, name:hName(id)}));
+  const curVerses = () => VERSES.map(([text, ref]) => ({text, ref}));
+  S.habitDelArm = null;
+  function renderSettings(){
+    if ($("view-account").hidden) return;
+    const f = document.activeElement; if (f && f.dataset && f.dataset.hid) return;   // don't redraw while typing a name
+    const hs = curHabits();
+    $("set-habits").innerHTML = hs.map((h, i) => `<div class="set-row" data-hid="${esc(h.id)}">
+        <input class="inp" data-hid="${esc(h.id)}" value="${esc(h.name)}" maxlength="40" aria-label="Habit name">
+        <div class="tools">
+          <button type="button" class="icon-btn" data-act="up" aria-label="Move up" ${i===0?"disabled":""}>${UP}</button>
+          <button type="button" class="icon-btn" data-act="down" aria-label="Move down" ${i===hs.length-1?"disabled":""}>${DOWN}</button>
+          <button type="button" class="icon-btn" data-act="rm" aria-label="Remove ${esc(h.name)}">${S.habitDelArm === h.id ? '<span style="font:700 11px/1 var(--body);color:var(--bad)">Sure?</span>' : TRASH}</button>
+        </div>
+        ${AUTO_HABITS[h.id] ? `<div class="auto">Checks itself ${AUTO_HABITS[h.id]}</div>` : ""}
+      </div>`).join("") + `<form class="add-row" id="set-habit-add" style="border-top:1px solid var(--line);padding-top:12px"><input class="inp" id="sh-name" placeholder="New habit, like Stretch" maxlength="40" style="padding:10px 12px;font-size:15px"><button class="btn sm" type="submit">Add</button></form>`;
+    const vs = curVerses();
+    $("set-verse-count").textContent = `${vs.length} verse${vs.length===1?"":"s"}`;
+    $("set-verses").innerHTML = vs.map((v, i) => `<div class="task" data-vi="${i}"><span></span><div style="min-width:0"><div class="t">${esc(v.ref)}</div><div class="due" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.text)}</div></div><button type="button" class="icon-btn" data-act="rm" aria-label="Remove ${esc(v.ref)}" ${vs.length<=1?"disabled":""}>${TRASH}</button></div>`).join("");
+    $("set-aisles").innerHTML = SECTIONS.map(a => `<span class="aisle">${esc(a)}${a === "Other" ? "" : `<button type="button" data-a="${esc(a)}" aria-label="Remove ${esc(a)}">×</button>`}</span>`).join("");
+  }
+  $("set-habits").addEventListener("change", e => {
+    const inp = e.target.closest("input[data-hid]"); if (!inp) return;
+    const name = inp.value.trim(); if (!name) { inp.value = hName(inp.dataset.hid); return; }
+    saveSettings({habits: curHabits().map(h => h.id === inp.dataset.hid ? {...h, name} : h)}); toast("Habit renamed");
+  });
+  $("set-habits").addEventListener("click", e => {
+    const a = e.target.closest("[data-act]"); if (!a) return;
+    const id = a.closest("[data-hid]").dataset.hid; const hs = curHabits(); const i = hs.findIndex(h => h.id === id);
+    if (a.dataset.act === "up" && i > 0) [hs[i-1], hs[i]] = [hs[i], hs[i-1]];
+    else if (a.dataset.act === "down" && i < hs.length - 1) [hs[i+1], hs[i]] = [hs[i], hs[i+1]];
+    else if (a.dataset.act === "rm") {
+      if (S.habitDelArm !== id) { S.habitDelArm = id; renderSettings(); setTimeout(() => { if (S.habitDelArm === id) { S.habitDelArm = null; renderSettings(); } }, 4000); return; }
+      S.habitDelArm = null; const removed = hs.splice(i, 1)[0];
+      saveSettings({habits: hs}); toast(`Removed ${removed.name}`, {label:"Undo", fn:() => { const back = curHabits(); back.splice(i, 0, removed); saveSettings({habits: back}); }});
+      return;
+    } else return;
+    saveSettings({habits: hs});
+  });
+  $("set-habits").addEventListener("submit", e => {
+    e.preventDefault(); const name = $("sh-name").value.trim(); if (!name) return;
+    saveSettings({habits: [...curHabits(), {id:"h-" + Math.random().toString(36).slice(2, 8), name}]}); toast(`Added ${name}`);
+  });
+  $("set-verse-form").addEventListener("submit", e => {
+    e.preventDefault(); const ref = $("sv-ref").value.trim(), text = $("sv-text").value.trim();
+    if (!ref || !text) { toast("Add the reference and the verse"); return; }
+    saveSettings({verses: [...curVerses(), {ref, text}]}); $("sv-ref").value = ""; $("sv-text").value = ""; toast(`Added ${ref}`);
+  });
+  $("set-verses").addEventListener("click", e => {
+    const a = e.target.closest("[data-act]"); if (!a) return;
+    const i = +a.closest("[data-vi]").dataset.vi; const vs = curVerses(); if (vs.length <= 1) return;
+    const removed = vs.splice(i, 1)[0]; saveSettings({verses: vs});
+    toast(`Removed ${removed.ref}`, {label:"Undo", fn:() => { const back = curVerses(); back.splice(i, 0, removed); saveSettings({verses: back}); }});
+  });
+  $("set-aisles").addEventListener("click", e => {
+    const b = e.target.closest("[data-a]"); if (!b) return;
+    saveSettings({aisles: SECTIONS.filter(a => a !== b.dataset.a)}); toast(`Removed ${b.dataset.a}. Its items move to Other.`);
+  });
+  $("set-aisle-form").addEventListener("submit", e => {
+    e.preventDefault(); const name = $("sa-name").value.trim(); if (!name || SECTIONS.includes(name)) return;
+    saveSettings({aisles: [...SECTIONS.filter(a => a !== "Other"), name, "Other"]}); $("sa-name").value = "";
+  });
+
+  // ---------- QUICK ADD ----------
+  const QA = { type:"task", due:"none", flag:false };
+  try { QA.type = localStorage.getItem("lamp:qa") || "task"; } catch {}
+  const QA_PH = { task:"What needs doing?", grocery:"What do you need?", prayer:"What are you praying for?" };
+  function renderQA(){
+    $("qa-type").querySelectorAll("[data-t]").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === QA.type));
+    $("qa-text").placeholder = QA_PH[QA.type];
+    const o = $("qa-opts");
+    if (QA.type === "task") o.innerHTML = ["none","today","tomorrow"].map(d => `<button type="button" class="chip sm" data-due="${d}" aria-pressed="${QA.due === d}">${{none:"No date", today:"Today", tomorrow:"Tomorrow"}[d]}</button>`).join("") + `<button type="button" class="chip sm flag" id="qa-flag" aria-pressed="${QA.flag}">High priority</button>`;
+    else if (QA.type === "grocery") o.innerHTML = `<select class="inp" id="qa-aisle" aria-label="Aisle" style="padding:9px 14px;font-size:15px;width:auto">${SECTIONS.map(x => `<option ${x === QA.aisle ? "selected" : ""}>${esc(x)}</option>`).join("")}</select>`;
+    else o.innerHTML = `<input class="inp" id="qa-for" placeholder="For who? (optional)" maxlength="80" style="padding:9px 14px;font-size:15px">`;
+    $("qa-hint").textContent = {task:"Goes to Tasks", grocery:"Goes to Groceries", prayer:"Goes to Prayer"}[QA.type];
+  }
+  function openQA(){ if (!store) return; renderQA(); $("qa").hidden = false; $("qa-back").hidden = false; $("fab").hidden = true; setTimeout(() => $("qa-text").focus(), 30); }
+  function closeQA(){ $("qa").hidden = true; $("qa-back").hidden = true; $("fab").hidden = false; $("qa-text").value = ""; QA.due = "none"; QA.flag = false; }
+  $("fab").onclick = openQA; $("qa-close").onclick = closeQA; $("qa-back").onclick = closeQA;
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("qa").hidden) closeQA(); });
+  $("qa-type").addEventListener("click", e => { const b = e.target.closest("[data-t]"); if (!b) return; QA.type = b.dataset.t; try { localStorage.setItem("lamp:qa", QA.type); } catch {} renderQA(); $("qa-text").focus(); });
+  $("qa-opts").addEventListener("click", e => {
+    const d = e.target.closest("[data-due]"); if (d) { QA.due = d.dataset.due; renderQA(); return; }
+    if (e.target.closest("#qa-flag")) { QA.flag = !QA.flag; renderQA(); }
+  });
+  $("qa-opts").addEventListener("change", e => { if (e.target.id === "qa-aisle") QA.aisle = e.target.value; });
+  $("qa").addEventListener("submit", e => {
+    e.preventDefault();
+    const text = $("qa-text").value.trim(); if (!text) { $("qa-text").focus(); return; }
+    const nowIso = new Date().toISOString();
+    if (QA.type === "task") {
+      const due = QA.due === "today" ? TODAY : QA.due === "tomorrow" ? iso(addDays(new Date(),1)) : null;
+      store.add("tasks", {title:text, due, priority: QA.flag ? "high" : null, done:false, doneAt:null, createdAt:nowIso});
+      toast("Added to Tasks");
+    } else if (QA.type === "grocery") {
+      const section = $("qa-aisle") ? $("qa-aisle").value : "Other"; QA.aisle = section;
+      const existing = (S.groceries||[]).find(g => g.name.toLowerCase() === text.toLowerCase());
+      if (existing) { const b = {...existing, need:true, section}; delete b.id; store.set("groceries", existing.id, b); }
+      else store.add("groceries", {name:text, section, qty:null, need:true, updated:nowIso});
+      toast("Added to Groceries");
+    } else {
+      store.add("prayers", {text, for:($("qa-for") && $("qa-for").value.trim()) || null, createdAt:nowIso, lastPrayed:null, count:0, answeredAt:null, answerNote:null});
+      toast("Added to Prayer");
+    }
+    closeQA();
+  });
+
   // ---------- ACCOUNT ----------
   function fmtWhen(isoStr){ if (!isoStr) return "Not yet"; const d = new Date(isoStr); return d.toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}); }
   function renderAccount(){
@@ -1062,7 +1240,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "today";
     VIEWS.forEach(n => { $("view-" + n).hidden = n !== v; const t = $("tab-" + n); if (t) t.setAttribute("aria-current", (TAB_FOR[v] || v) === n ? "page" : "false"); });
     if (v === "plan" && !S.planDraft && S.routines && S.routines.length) planPick(S.activeRoutine || S.routines[0].id);
-    if (v === "account") renderAccount();
+    if (v === "account") { renderAccount(); renderSettings(); }
     window.scrollTo(0,0);
   }
   addEventListener("hashchange", route);
@@ -1075,7 +1253,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   const byDesc = f => (a,b) => String(b[f]||"").localeCompare(String(a[f]||""));
   const LOADERS = {
     routines: () => { S.routines = store.all("routines").sort((a,b) => (a.order||0) - (b.order||0)); renderTodayTrain(); renderWorkout(); if (!$("view-plan").hidden && S.planId && !S.routines.some(r => r.id === S.planId)) { S.planDraft = null; } renderPlan(); },
-    meta: () => { S.weights = {...(store.get("meta","weights") || {})}; delete S.weights.id; S.bibleRead = {...(store.get("meta","bible") || {})}; delete S.bibleRead.id; renderWorkout(); renderBible(); },
+    meta: () => { S.weights = {...(store.get("meta","weights") || {})}; delete S.weights.id; S.bibleRead = {...(store.get("meta","bible") || {})}; delete S.bibleRead.id; renderWorkout(); renderBible(); applySettings(); },
     session: () => { if (!S.finishing) { S.session = store.get("session","current"); renderWorkout(); renderTodayTrain(); } },
     habits: () => { const h = {}; store.all("habits").forEach(d => h[d.id] = d); S.habits = h; renderHabits(); renderTodayTrain(); },
     tasks: () => { S.tasks = store.all("tasks"); renderTaskViews(); },
@@ -1101,7 +1279,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   function startApp(userId, email){
     USER_EMAIL = email || "";
     try { localStorage.setItem("lamp:lastUser", JSON.stringify({id:userId, email:USER_EMAIL})); } catch {}
-    $("auth").hidden = true; $("app").hidden = false; $("nav").hidden = false;
+    $("auth").hidden = true; $("app").hidden = false; $("nav").hidden = false; $("fab").hidden = false;
     store = LampStore.createStore({client:SB, userId, onChange:loadCols, onStatus:showSync});
     db = {
       collection: c => ({ add: async body => store.add(c, body) }),
@@ -1113,7 +1291,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   }
 
   function showAuth(msg){
-    $("app").hidden = true; $("nav").hidden = true; $("auth").hidden = false;
+    $("app").hidden = true; $("nav").hidden = true; $("fab").hidden = true; $("auth").hidden = false;
     $("au-err").hidden = !msg; $("au-err").textContent = msg || "";
   }
   $("auth-form").addEventListener("submit", async e => {

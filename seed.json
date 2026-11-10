@@ -1,0 +1,293 @@
+{
+ "routines": {
+  "cardio": {
+   "days": [
+    "Wed",
+    "Sat"
+   ],
+   "exercises": [],
+   "focus": "Cardio",
+   "minutes": 30,
+   "name": "Walk / Cardio",
+   "order": 5
+  },
+  "upper-b": {
+   "days": [
+    "Thu"
+   ],
+   "exercises": [
+    {
+     "id": "ub1",
+     "name": "Incline chest press machine",
+     "target": "3 × 8-10",
+     "works": "Upper chest, front delts"
+    },
+    {
+     "id": "ub2",
+     "name": "Assisted pull-up machine",
+     "target": "3 × 8-10",
+     "works": "Lats, biceps"
+    },
+    {
+     "id": "ub3",
+     "name": "Pec fly machine",
+     "target": "2 × 12-15",
+     "works": "Chest"
+    },
+    {
+     "id": "ub4",
+     "name": "Rear delt fly machine",
+     "target": "3 × 12-15",
+     "works": "Rear delts, upper back"
+    },
+    {
+     "id": "ub5",
+     "name": "Lateral raise machine",
+     "target": "3 × 12-15",
+     "works": "Side delts"
+    },
+    {
+     "id": "ub6",
+     "name": "Assisted dip machine",
+     "target": "2 × 10-12",
+     "works": "Triceps, chest"
+    },
+    {
+     "id": "ub7",
+     "name": "Biceps curl machine (slow lowering)",
+     "target": "2 × 10-12",
+     "works": "Biceps, forearms"
+    }
+   ],
+   "focus": "Upper",
+   "minutes": 50,
+   "name": "Upper B",
+   "order": 3
+  },
+  "upper-a": {
+   "days": [
+    "Mon"
+   ],
+   "exercises": [
+    {
+     "id": "ua1",
+     "name": "Chest press machine",
+     "target": "3 × 8-10",
+     "works": "Chest, front delts, triceps"
+    },
+    {
+     "id": "ua2",
+     "name": "Lat pulldown machine",
+     "target": "3 × 10-12",
+     "works": "Lats, biceps"
+    },
+    {
+     "id": "ua3",
+     "name": "Shoulder press machine",
+     "target": "3 × 8-10",
+     "works": "Shoulders, triceps"
+    },
+    {
+     "id": "ua4",
+     "name": "Seated row machine",
+     "target": "3 × 10-12",
+     "works": "Mid back, lats, rear delts"
+    },
+    {
+     "id": "ua5",
+     "name": "Biceps curl machine",
+     "target": "2 × 10-12",
+     "works": "Biceps"
+    },
+    {
+     "id": "ua6",
+     "name": "Triceps extension machine",
+     "target": "2 × 10-12",
+     "works": "Triceps"
+    }
+   ],
+   "focus": "Upper",
+   "minutes": 50,
+   "name": "Upper A",
+   "order": 1
+  },
+  "mobility": {
+   "days": [
+    "Sun"
+   ],
+   "exercises": [],
+   "focus": "Mobility",
+   "minutes": 15,
+   "name": "Mobility",
+   "order": 6
+  },
+  "lower-a": {
+   "days": [
+    "Tue"
+   ],
+   "exercises": [
+    {
+     "id": "la1",
+     "name": "Leg press",
+     "target": "3 × 10-12",
+     "works": "Quads, glutes"
+    },
+    {
+     "id": "la2",
+     "name": "Leg extension",
+     "target": "3 × 12-15",
+     "works": "Quads"
+    },
+    {
+     "id": "la3",
+     "name": "Seated leg curl",
+     "target": "3 × 10-12",
+     "works": "Hamstrings"
+    },
+    {
+     "id": "la4",
+     "name": "Hip adductor",
+     "target": "2 × 12-15",
+     "works": "Inner thighs"
+    },
+    {
+     "id": "la5",
+     "name": "Calf raise (leg press)",
+     "target": "3 × 12-15",
+     "works": "Calves"
+    },
+    {
+     "id": "la6",
+     "name": "Ab crunch machine",
+     "target": "3 × 12-15",
+     "works": "Abs"
+    },
+    {
+     "id": "la7",
+     "name": "Torso rotation machine",
+     "target": "2 × 12 per side",
+     "works": "Obliques"
+    }
+   ],
+   "focus": "Lower",
+   "minutes": 50,
+   "name": "Lower A",
+   "order": 2
+  },
+  "lower-b": {
+   "days": [
+    "Fri"
+   ],
+   "exercises": [
+    {
+     "id": "lb1",
+     "name": "Leg press, feet high and wide",
+     "target": "3 × 10-12",
+     "works": "Glutes, hamstrings"
+    },
+    {
+     "id": "lb2",
+     "name": "Lying leg curl",
+     "target": "3 × 10-12",
+     "works": "Hamstrings"
+    },
+    {
+     "id": "lb3",
+     "name": "Glute kickback machine",
+     "target": "3 × 12 per side",
+     "works": "Glutes"
+    },
+    {
+     "id": "lb4",
+     "name": "Hip abductor",
+     "target": "3 × 12-15",
+     "works": "Outer glutes"
+    },
+    {
+     "id": "lb5",
+     "name": "Back extension machine",
+     "target": "3 × 12",
+     "works": "Lower back, glutes"
+    },
+    {
+     "id": "lb6",
+     "name": "Seated calf raise",
+     "target": "3 × 12-15",
+     "works": "Calves"
+    }
+   ],
+   "focus": "Lower",
+   "minutes": 45,
+   "name": "Lower B",
+   "order": 4
+  }
+ },
+ "groceries": {
+  "avocados": {
+   "name": "Avocados",
+   "section": "Produce",
+   "qty": null,
+   "need": false
+  },
+  "spinach-greens": {
+   "name": "Spinach / greens",
+   "section": "Produce",
+   "qty": null,
+   "need": false
+  },
+  "potatoes": {
+   "name": "Potatoes",
+   "section": "Produce",
+   "qty": null,
+   "need": false
+  },
+  "onions-peppers": {
+   "name": "Onions + peppers",
+   "section": "Produce",
+   "qty": null,
+   "need": false
+  },
+  "eggs": {
+   "name": "Eggs",
+   "section": "Dairy & Eggs",
+   "qty": null,
+   "need": false
+  },
+  "rice": {
+   "name": "Rice",
+   "section": "Pantry",
+   "qty": null,
+   "need": false
+  },
+  "seasonings-sauces": {
+   "name": "Seasonings + sauces",
+   "section": "Pantry",
+   "qty": null,
+   "need": false
+  },
+  "chicken-thighs": {
+   "name": "Chicken thighs",
+   "section": "Meat & Seafood",
+   "qty": null,
+   "need": false
+  },
+  "ground-beef": {
+   "name": "Ground beef",
+   "section": "Meat & Seafood",
+   "qty": null,
+   "need": false
+  },
+  "shaved-steak": {
+   "name": "Shaved steak",
+   "section": "Meat & Seafood",
+   "qty": null,
+   "need": false
+  },
+  "frozen-veggies": {
+   "name": "Frozen veggies",
+   "section": "Frozen",
+   "qty": null,
+   "need": false
+  }
+ }
+}

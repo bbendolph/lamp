@@ -1,6 +1,6 @@
 // Lamp service worker: keeps the app itself available offline.
 // Data never goes through here; it lives in the app's local store and Supabase.
-const VERSION = "lamp-1.3.2";
+const VERSION = "lamp-1.4.0";
 const SHELL = ["./", "index.html", "config.js", "js/store.js", "vendor/supabase.js", "seed.json",
   "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 

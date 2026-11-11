@@ -294,6 +294,30 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   body{padding-left:248px} nav.tabs{width:248px}
   .cols{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
 }
+.tap .hc-txt{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.hc-name{font:600 15px/1.2 var(--body)}
+.hc-sub{font:500 12px/1.2 var(--body);color:var(--muted);font-variant-numeric:tabular-nums}
+.hstreak{color:var(--warn);font-weight:600}
+.hcount{padding:0;gap:0;align-items:stretch}
+.hcount .hc-main{appearance:none;border:0;background:none;color:inherit;display:flex;align-items:center;gap:12px;padding:12px 4px 12px 14px;flex:1;min-width:0;text-align:left;cursor:pointer;font:inherit}
+.hcount .box b{font:700 17px/1 var(--body);color:var(--accent)}
+.hcount.is-done{background:var(--good-soft);border-color:var(--good)}
+.hcount.is-done .box{background:var(--good);border-color:var(--good)}
+.hcount.is-done .box svg{opacity:1}
+.hc-bar{display:block;height:5px;border-radius:99px;background:var(--raised);overflow:hidden;margin-top:2px}
+.hc-bar b{display:block;height:100%;background:var(--accent);border-radius:99px}
+.hcount.is-done .hc-bar b{background:var(--good)}
+.hc-minus{appearance:none;border:0;border-left:1px solid var(--line);background:none;color:var(--muted);width:40px;font:600 20px/1 var(--body);cursor:pointer;border-radius:0 13px 13px 0}
+.hc-minus:disabled{opacity:.35;cursor:default}
+.hopts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.mini-seg{padding:3px}
+.mini-seg button{padding:7px 10px;font-size:12px;flex:none}
+.hnum{display:flex;align-items:center;gap:6px;font:600 12px/1 var(--body);color:var(--muted)}
+.hnum .inp{width:64px;padding:7px 8px;font-size:14px}
+.hunit{width:96px;padding:7px 10px!important;font-size:14px!important}
+.daypick.small button{width:34px;height:30px;font-size:12px;border-radius:8px}
+.hcount{grid-column:span 2}
+@media (min-width:700px){.hcount{grid-column:span 2}}
 </style>
 </head>
 <body>
@@ -635,11 +659,36 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
 <script src="js/store.js"></script>
 <script>
 (() => {
-  const DEFAULT_HABITS = ["Devotion","Prayer","Read","Workout","2L Water","Skin care","Journal"];
-  let HABITS = [...DEFAULT_HABITS];          // habit ids (keys in each day's record)
-  let HABIT_NAME = {};                         // id -> display name
+  // A habit is either a checkbox ("check") or a counter you log a little at a time ("count").
+  // days: which weekdays it's due (empty = every day).
+  const DEFAULT_HABIT_DEFS = [
+    {id:"Devotion", name:"Devotion", type:"check"},
+    {id:"Prayer", name:"Prayer", type:"check"},
+    {id:"Read", name:"Read", type:"check"},
+    {id:"Workout", name:"Workout", type:"check"},
+    {id:"2L Water", name:"Water", type:"count", target:8, unit:"glasses", step:1},
+    {id:"Skin care", name:"Skin care", type:"check"},
+    {id:"Journal", name:"Journal", type:"check"},
+  ];
+  const DEFAULT_HABITS = DEFAULT_HABIT_DEFS.map(h => h.id);
+  let HABITS = [...DEFAULT_HABITS];            // habit ids (keys in each day's record)
+  let HDEF = Object.fromEntries(DEFAULT_HABIT_DEFS.map(h => [h.id, h]));
+  let HABIT_NAME = {};                         // kept for older code paths
   const AUTO_HABITS = {Devotion:"when you save a study", Prayer:"when you tap I prayed", Read:"when you update your page", Workout:"when you finish a workout"};
-  const hName = id => HABIT_NAME[id] || id;
+  const hDef = id => HDEF[id] || {id, name:id, type:"check"};
+  const hName = id => hDef(id).name || id;
+  const dueOn = (id, dateStr) => { const d = hDef(id).days; return !d || !d.length || d.includes(DAYS[parseISO(dateStr).getDay()]); };
+  const hDone = (id, v) => { const h = hDef(id); if (h.type === "count") return v === true || (+v || 0) >= (h.target || 1); return !!v; };
+  const dueHabits = dateStr => HABITS.filter(id => dueOn(id, dateStr));
+  function streakOf(id){
+    let n = 0, d = new Date();
+    for (let i = 0; i < 400; i++, d = addDays(d, -1)) {
+      const ds = iso(d); if (!dueOn(id, ds)) continue;
+      const done = hDone(id, (S.habits[ds] || {})[id]);
+      if (done) n++; else if (i === 0) continue; else break;
+    }
+    return n;
+  }
   const DEFAULT_VERSES = [
     ["Thy word is a lamp unto my feet, and a light unto my path.","Psalm 119:105"],
     ["Trust in the LORD with all thine heart; and lean not unto thine own understanding.","Proverbs 3:5"],
@@ -699,7 +748,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
 
   // ---------- derived ----------
   const habitDoc = date => S.habits[date] || {date};
-  const habitPct = d => Math.round(HABITS.filter(h => d[h]).length / HABITS.length * 100);
+  const habitPct = d => { const list = dueHabits(d.date || TODAY); return list.length ? Math.round(list.filter(h => hDone(h, d[h])).length / list.length * 100) : 0; };
   const todaysRoutine = () => (S.routines||[]).find(r => (r.days||[]).includes(WEEKDAY)) || null;
   const activeRoutine = () => (S.routines||[]).find(r => r.id === S.activeRoutine) || null;
   const liveSession = r => (S.session && S.session.date === TODAY && r && S.session.routineId === r.id) ? S.session : null;
@@ -707,18 +756,37 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
 
   // ---------- TODAY ----------
   function renderHabits(){
-    const d = habitDoc(TODAY); const done = HABITS.filter(h => d[h]).length; const pct = habitPct(d);
-    $("habit-count").textContent = `${done} of ${HABITS.length}`; $("habit-pct").textContent = pct + "%";
+    const d = habitDoc(TODAY); const list = dueHabits(TODAY); const done = list.filter(h => hDone(h, d[h])).length; const pct = habitPct({...d, date:TODAY});
+    $("habit-count").textContent = `${done} of ${list.length}`; $("habit-pct").textContent = pct + "%";
     $("habit-fill").style.width = pct + "%"; $("habit-fill").classList.toggle("full", pct === 100);
-    $("habits").innerHTML = HABITS.map(h => `<button type="button" class="tap" data-h="${esc(h)}" aria-pressed="${!!d[h]}"><span class="box">${CHECK}</span>${esc(hName(h))}</button>`).join("");
+    $("habits").innerHTML = list.map(id => {
+      const h = hDef(id), v = d[id], ok = hDone(id, v), st = streakOf(id);
+      const streak = st >= 2 ? `<span class="hstreak">${st} days</span>` : "";
+      if (h.type === "count") {
+        const n = v === true ? h.target : (+v || 0), t = h.target || 1, w = Math.min(100, Math.round(n / t * 100));
+        return `<div class="tap hcount ${ok ? "is-done" : ""}" data-h="${esc(id)}">
+          <button type="button" class="hc-main" data-act="inc" aria-label="Add ${h.step || 1} to ${esc(h.name)}"><span class="box">${ok ? CHECK : `<b>+</b>`}</span>
+            <span class="hc-txt"><span class="hc-name">${esc(h.name)}</span><span class="hc-sub">${n} / ${t} ${esc(h.unit || "")}${streak ? " · " : ""}${streak}</span><i class="hc-bar"><b style="width:${w}%"></b></i></span></button>
+          <button type="button" class="hc-minus" data-act="dec" aria-label="Take 1 off ${esc(h.name)}" ${n <= 0 ? "disabled" : ""}>−</button>
+        </div>`;
+      }
+      return `<button type="button" class="tap" data-h="${esc(id)}" aria-pressed="${ok}"><span class="box">${CHECK}</span><span class="hc-txt"><span class="hc-name">${esc(h.name)}</span>${streak ? `<span class="hc-sub">${streak}</span>` : ""}</span></button>`;
+    }).join("") || `<div class="empty" style="grid-column:1/-1">No habits due today.</div>`;
     const now = new Date(); let w = "";
-    for (let i = 6; i >= 0; i--) { const day = addDays(now, -i); const p = habitPct(habitDoc(iso(day)));
+    for (let i = 6; i >= 0; i--) { const day = addDays(now, -i); const ds = iso(day); const p = habitPct({...habitDoc(ds), date:ds});
       w += `<div class="${i===0?"is-today":""}" title="${p}%"><i><b class="${p===100?"full":""}" style="width:${p}%"></b></i>${DAYS[day.getDay()].slice(0,2)}</div>`; }
     $("week").innerHTML = w;
   }
   $("habits").addEventListener("click", e => {
-    const b = e.target.closest(".tap"); if (!b || !db) return;
-    const h = b.dataset.h; const d = {...habitDoc(TODAY), date:TODAY}; d[h] = !d[h];
+    const tile = e.target.closest("[data-h]"); if (!tile || !db) return;
+    const id = tile.dataset.h, h = hDef(id); const d = {...habitDoc(TODAY), date:TODAY};
+    if (h.type === "count") {
+      const cur = d[id] === true ? (h.target || 1) : (+d[id] || 0);
+      const act = e.target.closest("[data-act]"); if (!act) return;
+      const next = act.dataset.act === "dec" ? Math.max(0, cur - 1) : cur + (h.step || 1);
+      d[id] = next;
+      if (act.dataset.act === "inc" && next >= (h.target || 1) && cur < (h.target || 1)) toast(`${h.name} done for today`);
+    } else d[id] = !d[id];
     S.habits[TODAY] = d; renderHabits(); renderTodayTrain();
     save("habits/" + TODAY, d);
   });
@@ -1266,18 +1334,19 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   function saveSettings(patch){ store.set("meta","settings", {...settingsDoc(), ...patch}); }
   function applySettings(){
     const st = settingsDoc();
-    if (Array.isArray(st.habits) && st.habits.length) { HABITS = st.habits.map(h => h.id); HABIT_NAME = Object.fromEntries(st.habits.map(h => [h.id, h.name])); }
-    else { HABITS = [...DEFAULT_HABITS]; HABIT_NAME = {}; }
+    const base = Object.fromEntries(DEFAULT_HABIT_DEFS.map(h => [h.id, h]));
+    const defs = Array.isArray(st.habits) && st.habits.length ? st.habits.map(h => ({type:"check", ...(base[h.id] || {}), ...h})) : DEFAULT_HABIT_DEFS;
+    HABITS = defs.map(h => h.id); HDEF = Object.fromEntries(defs.map(h => [h.id, h]));
     VERSES = Array.isArray(st.verses) && st.verses.length ? st.verses.map(v => [v.text, v.ref]) : DEFAULT_VERSES;
     SECTIONS = Array.isArray(st.aisles) && st.aisles.length ? [...st.aisles.filter(a => a !== "Other"), "Other"] : [...DEFAULT_AISLES];
     setClock(); fillAisles(); renderHabits(); renderGroceries(); renderSettings();
   }
-  const curHabits = () => HABITS.map(id => ({id, name:hName(id)}));
+  const curHabits = () => HABITS.map(id => ({...hDef(id)}));
   const curVerses = () => VERSES.map(([text, ref]) => ({text, ref}));
   S.habitDelArm = null;
   function renderSettings(){
     if ($("view-account").hidden) return;
-    const f = document.activeElement; if (f && f.dataset && f.dataset.hid) return;   // don't redraw while typing a name
+    const f = document.activeElement; if (f && f.dataset && (f.dataset.hid || f.dataset.f)) return;   // don't redraw while typing
     const hs = curHabits();
     $("set-habits").innerHTML = hs.map((h, i) => `<div class="set-row" data-hid="${esc(h.id)}">
         <input class="inp" data-hid="${esc(h.id)}" value="${esc(h.name)}" maxlength="40" aria-label="Habit name">
@@ -1285,6 +1354,11 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
           <button type="button" class="icon-btn" data-act="up" aria-label="Move up" ${i===0?"disabled":""}>${UP}</button>
           <button type="button" class="icon-btn" data-act="down" aria-label="Move down" ${i===hs.length-1?"disabled":""}>${DOWN}</button>
           <button type="button" class="icon-btn" data-act="rm" aria-label="Remove ${esc(h.name)}">${S.habitDelArm === h.id ? '<span style="font:700 11px/1 var(--body);color:var(--bad)">Sure?</span>' : TRASH}</button>
+        </div>
+        <div class="hopts">
+          <span class="seg mini-seg" role="group" aria-label="Habit type"><button type="button" data-type="check" aria-pressed="${h.type !== "count"}">Checkbox</button><button type="button" data-type="count" aria-pressed="${h.type === "count"}">Counter</button></span>
+          ${h.type === "count" ? `<label class="hnum">Goal <input class="inp" type="number" inputmode="numeric" min="1" max="999" data-f="target" value="${h.target || 8}" aria-label="Daily goal"></label><input class="inp hunit" data-f="unit" value="${esc(h.unit || "")}" placeholder="glasses" maxlength="16" aria-label="Unit">` : ""}
+          <span class="daypick small" aria-label="Days">${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(x => `<button type="button" data-day="${x}" aria-pressed="${!h.days || !h.days.length || h.days.includes(x)}" aria-label="${x}">${x.slice(0,2)}</button>`).join("")}</span>
         </div>
         ${AUTO_HABITS[h.id] ? `<div class="auto">Checks itself ${AUTO_HABITS[h.id]}</div>` : ""}
       </div>`).join("") + `<form class="add-row" id="set-habit-add" style="border-top:1px solid var(--line);padding-top:12px"><input class="inp" id="sh-name" placeholder="New habit, like Stretch" maxlength="40" style="padding:10px 12px;font-size:15px"><button class="btn sm" type="submit">Add</button></form>`;
@@ -1294,11 +1368,30 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     $("set-aisles").innerHTML = SECTIONS.map(a => `<span class="aisle">${esc(a)}${a === "Other" ? "" : `<button type="button" data-a="${esc(a)}" aria-label="Remove ${esc(a)}">×</button>`}</span>`).join("");
   }
   $("set-habits").addEventListener("change", e => {
+    const fld = e.target.closest("input[data-f]");
+    if (fld) {
+      const id = fld.closest(".set-row").dataset.hid;
+      const val = fld.dataset.f === "target" ? Math.max(1, parseInt(fld.value, 10) || 1) : fld.value.trim();
+      saveSettings({habits: curHabits().map(h => h.id === id ? {...h, [fld.dataset.f]: val} : h)}); return;
+    }
     const inp = e.target.closest("input[data-hid]"); if (!inp) return;
     const name = inp.value.trim(); if (!name) { inp.value = hName(inp.dataset.hid); return; }
     saveSettings({habits: curHabits().map(h => h.id === inp.dataset.hid ? {...h, name} : h)}); toast("Habit renamed");
   });
   $("set-habits").addEventListener("click", e => {
+    const ty = e.target.closest("[data-type]"), dy = e.target.closest("[data-day]");
+    if (ty || dy) {
+      const id = (ty || dy).closest(".set-row").dataset.hid;
+      const hs = curHabits().map(h => {
+        if (h.id !== id) return h;
+        if (ty) return ty.dataset.type === "count" ? {...h, type:"count", target:h.target || 8, unit:h.unit || "", step:h.step || 1} : {...h, type:"check"};
+        const all = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]; let days = h.days && h.days.length ? [...h.days] : [...all];
+        days = days.includes(dy.dataset.day) ? days.filter(x => x !== dy.dataset.day) : [...days, dy.dataset.day];
+        if (!days.length) { toast("A habit needs at least one day"); return h; }
+        return {...h, days: days.length === 7 ? [] : all.filter(x => days.includes(x))};
+      });
+      saveSettings({habits: hs}); return;
+    }
     const a = e.target.closest("[data-act]"); if (!a) return;
     const id = a.closest("[data-hid]").dataset.hid; const hs = curHabits(); const i = hs.findIndex(h => h.id === id);
     if (a.dataset.act === "up" && i > 0) [hs[i-1], hs[i]] = [hs[i], hs[i-1]];
@@ -1313,7 +1406,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   });
   $("set-habits").addEventListener("submit", e => {
     e.preventDefault(); const name = $("sh-name").value.trim(); if (!name) return;
-    saveSettings({habits: [...curHabits(), {id:"h-" + Math.random().toString(36).slice(2, 8), name}]}); toast(`Added ${name}`);
+    saveSettings({habits: [...curHabits(), {id:"h-" + Math.random().toString(36).slice(2, 8), name, type:"check"}]}); toast(`Added ${name}`);
   });
   $("set-verse-form").addEventListener("submit", e => {
     e.preventDefault(); const ref = $("sv-ref").value.trim(), text = $("sv-text").value.trim();

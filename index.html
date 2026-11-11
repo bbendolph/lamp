@@ -318,6 +318,12 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
 .daypick.small button{width:34px;height:30px;font-size:12px;border-radius:8px}
 .hcount{grid-column:span 2}
 @media (min-width:700px){.hcount{grid-column:span 2}}
+.tedit-open{cursor:pointer}
+.task.editing{grid-template-columns:1fr;padding:14px}
+.tedit{display:flex;flex-direction:column;gap:10px}
+.tedit .inp{padding:10px 12px;font-size:16px}
+.tedit input[type=date]{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:99px;padding:7px 12px;font:600 13px/1 var(--body)}
+.tedit input[type=date].on{border-color:var(--accent);background:var(--accent-soft)}
 </style>
 </head>
 <body>
@@ -477,7 +483,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
         <div class="field"><label for="sv-text">Verse</label><textarea class="inp" id="sv-text" maxlength="600" style="min-height:64px"></textarea></div>
         <div><button class="btn" type="submit">Add verse</button></div>
       </form>
-      <div class="list" id="set-verses"></div>
+      <details class="entry"><summary><b>Your verses</b><span id="set-verse-sum"></span></summary><div class="body"><div class="list" id="set-verses"></div></div></details>
     </section>
 
     </div>
@@ -803,12 +809,28 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     el.innerHTML = `<div class="notice ${logged ? "good" : "info"}"><span><b>${esc(r.name)}</b> · ${ex.length ? `${logged ? ex.length : d} of ${ex.length} machines` : esc(r.focus||"")}${r.minutes ? " · ~" + r.minutes + " min" : ""}${logged ? " · logged" : ""}</span><a class="btn" href="#workout">${logged ? "View" : d ? "Continue" : "Start"}</a></div>`;
   }
 
+  S.editTask = null; S.editDue = null;
   function taskRow(t){
+    if (S.editTask === t.id) {
+      const tmr = iso(addDays(new Date(),1)); const due = S.editDue === undefined ? t.due : S.editDue;
+      const pick = due && due !== TODAY && due !== tmr ? due : "";
+      return `<div class="task editing" data-id="${esc(t.id)}"><form class="tedit" autocomplete="off">
+        <input class="inp" name="title" value="${esc(t.title)}" maxlength="200" aria-label="Task">
+        <div class="chips">
+          <button type="button" class="chip sm" data-edue="" aria-pressed="${!due}">No date</button>
+          <button type="button" class="chip sm" data-edue="${TODAY}" aria-pressed="${due === TODAY}">Today</button>
+          <button type="button" class="chip sm" data-edue="${tmr}" aria-pressed="${due === tmr}">Tomorrow</button>
+          <input type="date" name="date" value="${pick}" aria-label="Pick a date" class="${pick ? "on" : ""}">
+          <button type="button" class="chip sm flag" data-eflag aria-pressed="${t.priority === "high"}">High priority</button>
+        </div>
+        <div class="row-actions"><button class="btn sm" type="submit">Save</button><button class="btn ghost sm" type="button" data-ecancel>Cancel</button></div>
+      </form></div>`;
+    }
     const late = t.due && !t.done && t.due < TODAY;
     const dueTxt = t.due ? (t.due === TODAY ? "Today" : t.due === iso(addDays(new Date(),1)) ? "Tomorrow" : fmtShort(t.due)) : "";
     return `<div class="task ${t.done?"done":""}" data-id="${esc(t.id)}">
       <button type="button" class="tick" aria-pressed="${!!t.done}" aria-label="${t.done?"Reopen":"Complete"} ${esc(t.title)}"><span class="box">${CHECK}</span></button>
-      <div style="min-width:0"><div class="t">${t.priority==="high"?'<span class="pri" title="High priority"></span>':""}${esc(t.title)}</div>${dueTxt?`<div class="due ${late?"late":""}">${late?"Overdue · ":""}${esc(dueTxt)}</div>`:""}</div>
+      <div style="min-width:0" class="tedit-open" title="Tap to edit"><div class="t">${t.priority==="high"?'<span class="pri" title="High priority"></span>':""}${esc(t.title)}</div>${dueTxt?`<div class="due ${late?"late":""}">${late?"Overdue · ":""}${esc(dueTxt)}</div>`:""}</div>
       <button type="button" class="icon-btn del" aria-label="Delete ${esc(t.title)}">${TRASH}</button>
     </div>`;
   }
@@ -983,6 +1005,15 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   function onTaskClick(e){
     const row = e.target.closest(".task"); if (!row || !db) return;
     const t = (S.tasks||[]).find(x => x.id === row.dataset.id); if (!t) return;
+    if (row.classList.contains("editing")) {
+      const form = row.querySelector("form");
+      const ed = e.target.closest("[data-edue]");
+      if (ed) { S.editDue = ed.dataset.edue || null; t.title = form.title.value; renderTaskViews(); return; }
+      if (e.target.closest("[data-eflag]")) { const b = e.target.closest("[data-eflag]"); b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); return; }
+      if (e.target.closest("[data-ecancel]")) { S.editTask = null; S.editDue = undefined; LOADERS.tasks(); }
+      return;
+    }
+    if (e.target.closest(".tedit-open")) { S.editTask = t.id; S.editDue = undefined; renderTaskViews(); const i = document.querySelector('.task.editing input[name="title"]'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } return; }
     if (e.target.closest(".tick")) {
       const next = !t.done; const body = {...t, done:next, doneAt: next ? new Date().toISOString() : null}; delete body.id;
       Object.assign(t, {done:next, doneAt:body.doneAt}); renderTaskViews();
@@ -994,6 +1025,16 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
       db.doc("tasks/" + t.id).delete().then(() => toast(`Deleted: ${t.title}`, {label:"Undo", fn:() => save("tasks/" + t.id, body)})).catch(dbError);
     }
   }
+  function onTaskEdit(e){
+    const form = e.target.closest("form.tedit"); if (!form) return; e.preventDefault();
+    const row = form.closest(".task"); const t = (S.tasks||[]).find(x => x.id === row.dataset.id); if (!t) return;
+    const title = form.title.value.trim(); if (!title) { form.title.focus(); return; }
+    const due = form.date.value || (S.editDue === undefined ? t.due : S.editDue) || null;
+    const body = {...t, title, due, priority: form.querySelector("[data-eflag]").getAttribute("aria-pressed") === "true" ? "high" : null}; delete body.id;
+    S.editTask = null; S.editDue = undefined; Object.assign(t, body); save("tasks/" + t.id, body); renderTaskViews(); toast("Task updated");
+  }
+  $("task-groups").addEventListener("submit", onTaskEdit); $("today-tasks").addEventListener("submit", onTaskEdit);
+  ["task-groups","today-tasks"].forEach(id => $(id).addEventListener("change", e => { if (e.target.name === "date" && e.target.closest("form.tedit")) { S.editDue = e.target.value || null; } }));
   $("task-groups").addEventListener("click", onTaskClick);
   $("today-tasks").addEventListener("click", onTaskClick);
 
@@ -1104,7 +1145,9 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
   S.answering = null;
   function renderPrayer(){
     if (!S.prayers) return;
-    const active = S.prayers.filter(p => !p.answeredAt).sort((a,b) => String(a.lastPrayed||"").localeCompare(String(b.lastPrayed||"")) || String(a.createdAt).localeCompare(String(b.createdAt)));
+    // order by when you last prayed before today, so tapping "I prayed" doesn't make the list jump
+    const key = p => String((p.lastPrayed === TODAY ? p.prevPrayed : p.lastPrayed) || "");
+    const active = S.prayers.filter(p => !p.answeredAt).sort((a,b) => key(a).localeCompare(key(b)) || String(a.createdAt).localeCompare(String(b.createdAt)));
     const answered = S.prayers.filter(p => p.answeredAt).sort((a,b) => String(b.answeredAt).localeCompare(String(a.answeredAt)));
     $("pr-count").textContent = active.length ? `${active.filter(p => p.lastPrayed === TODAY).length} of ${active.length} prayed today` : "";
     $("pr-list").innerHTML = active.length ? active.map(p => {
@@ -1138,7 +1181,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     const act = a.dataset.act;
     if (act === "pray") {
       if (p.lastPrayed === TODAY) return;
-      Object.assign(body, {lastPrayed:TODAY, count:(p.count||0)+1}); Object.assign(p, body);
+      Object.assign(body, {prevPrayed:p.lastPrayed || null, lastPrayed:TODAY, count:(p.count||0)+1}); Object.assign(p, body);
       save("prayers/" + p.id, body); setHabit("Prayer", true); renderPrayer();
     } else if (act === "ans") { S.answering = p.id; renderPrayer(); }
     else if (act === "ans-cancel") { S.answering = null; renderPrayer(); }
@@ -1363,7 +1406,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
         ${AUTO_HABITS[h.id] ? `<div class="auto">Checks itself ${AUTO_HABITS[h.id]}</div>` : ""}
       </div>`).join("") + `<form class="add-row" id="set-habit-add" style="border-top:1px solid var(--line);padding-top:12px"><input class="inp" id="sh-name" placeholder="New habit, like Stretch" maxlength="40" style="padding:10px 12px;font-size:15px"><button class="btn sm" type="submit">Add</button></form>`;
     const vs = curVerses();
-    $("set-verse-count").textContent = `${vs.length} verse${vs.length===1?"":"s"}`;
+    $("set-verse-count").textContent = `${vs.length} verse${vs.length===1?"":"s"}`; $("set-verse-sum").textContent = "Show all";
     $("set-verses").innerHTML = vs.map((v, i) => `<div class="task" data-vi="${i}"><span></span><div style="min-width:0"><div class="t">${esc(v.ref)}</div><div class="due" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.text)}</div></div><button type="button" class="icon-btn" data-act="rm" aria-label="Remove ${esc(v.ref)}" ${vs.length<=1?"disabled":""}>${TRASH}</button></div>`).join("");
     $("set-aisles").innerHTML = SECTIONS.map(a => `<span class="aisle">${esc(a)}${a === "Other" ? "" : `<button type="button" data-a="${esc(a)}" aria-label="Remove ${esc(a)}">×</button>`}</span>`).join("");
   }
@@ -1565,7 +1608,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
     meta: () => { S.weights = {...(store.get("meta","weights") || {})}; delete S.weights.id; S.bibleRead = {...(store.get("meta","bible") || {})}; delete S.bibleRead.id; renderWorkout(); renderBible(); applySettings(); },
     session: () => { if (!S.finishing) { S.session = store.get("session","current"); renderWorkout(); renderTodayTrain(); } },
     habits: () => { const h = {}; store.all("habits").forEach(d => h[d.id] = d); S.habits = h; renderHabits(); renderTodayTrain(); },
-    tasks: () => { S.tasks = store.all("tasks"); renderTaskViews(); },
+    tasks: () => { S.tasks = store.all("tasks"); if (!S.editTask) renderTaskViews(); },
     workouts: () => { S.workouts = store.all("workouts").sort(byDesc("date")); renderHistory(); renderTodayTrain(); renderWorkout(); },
     study: () => { S.study = store.all("study").sort(byDesc("date")); renderBible(); renderTodayWord(); },
     verses: () => { S.verses = store.all("verses"); renderVerses(); },
